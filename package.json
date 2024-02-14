@@ -1,0 +1,39 @@
+{
+  "name": "ptv-vectormap-overlays-react-app",
+  "version": "0.1.0",
+  "private": true,
+  "homepage": "Tutorials/MapRendering/ptv-vectormap-overlays-react-app",
+  "dependencies": {
+    "maplibre-gl": "3.6.2",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-map-gl": "7.1.4",
+    "react-scripts": "5.0.1"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build"
+  },
+  "engines": {
+    "node": ">=16.13.0",
+    "npm": ">=6.14.0"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
