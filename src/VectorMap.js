@@ -1,14 +1,10 @@
 import { useCallback, useRef, useState } from "react";
 import { Map, NavigationControl, Popup } from "react-map-gl/maplibre";
+import OverlayControl from "./OverlayControl";
 
-// Use the standard map style with truck restrictions provided by PTV.
-const MAP_STYLE_URL = "https://vectormaps-resources.myptv.com/styles/latest/standard-truck-restrictions.json";
+//Use the standard map style with invisible overlays provided by PTV.
+const MAP_STYLE_URL = "https://vectormaps-resources.myptv.com/styles/latest/standard.json";
 
-// There are different icons for north american countries, so we have different layers to handle.
-const TRUCK_RESTRICTION_ICON_LAYERS = ["TSP_TruckRestrictions_Shield_HERE", 
-  "TSP_TruckRestrictions_Shield_HERE_USA", 
-  "TSP_TruckRestrictions_Shield_HERE_CAN",
-  "TSP_TruckRestrictions_Shield_HERE_MEX"];
 
 //The initial view is Karlsruhe, Germany.
 const INITIAL_VIEW_PORT = {
@@ -25,37 +21,61 @@ export const VectorMap = (props) => {
 
   const getTransformRequest = useCallback(
     (url, resourceType) => {
-      if (resourceType === "Tile") {
-        return { url: url, headers: { ApiKey: " " + props.apiKey } };
+      let requiredUrl = url || "";
+      if (resourceType && resourceType === "Tile") {
+        //Add current time as reference time 
+        if (url?.includes("trafficPatterns")) {
+          requiredUrl += "&referenceTime=" + new Date().toISOString();
+        }
+        return {
+          url: requiredUrl,
+          headers: { ApiKey: " " + props.apiKey },
+        };
       }
-      return { url: url, headers: {} };
+      return { url: requiredUrl, headers: {} };
     }, []
   );
 
   const initializeEvents = () => {
     const map = mapRef.current?.getMap();
-    TRUCK_RESTRICTION_ICON_LAYERS.forEach((layer) => {
-      map?.on("mouseenter", layer, () => {
-        map.getCanvas().style.cursor = "pointer";
-      });
-      map?.on("mouseleave", layer, () => {
-        map.getCanvas().style.cursor = "";
-      });
-      map?.on("click", layer, (event) => {
-        if (event?.features) {
-          const structuredDescriptions =
-            event?.features[0].properties.structured_descriptions;
-          const descriptions = JSON.parse(structuredDescriptions);
-          setPopupInfo({
-            lnglat: event.lngLat,
-            description: descriptions,
-          });
-        }
-      });
+    map?.getStyle().layers.forEach((layer) => {
+      if (layer.metadata && layer.metadata["ptv:layer-group"] === "truck-restrictions") {
+        map?.on("mouseenter", layer.id, () => {
+          map.getCanvas().style.cursor = "pointer";
+        });
+        map?.on("mouseleave", layer.id, () => {
+          map.getCanvas().style.cursor = "";
+        });
+        map?.on("click", layer.id, (event) => {
+          if (event?.features) {
+            const structuredDescriptions =
+              event?.features[0].properties.structured_descriptions;
+            const descriptions = JSON.parse(structuredDescriptions);
+            setPopupInfo({
+              lnglat: event.lngLat,
+              description: descriptions,
+            });
+          }
+        });
+      }
+    });
+  };
+
+  const updateOverlays = (overlays) => {
+    const map = mapRef.current?.getMap();
+    const style = map?.getStyle();
+    style?.layers.forEach( (layer) => {
+      if (layer.metadata) {
+        //Use the layer-group to set all layers that included in overlays array to visible
+        map.setLayoutProperty(layer.id, 
+          'visibility', 
+          overlays.includes(layer.metadata["ptv:layer-group"]) ? "visible" : "none");
+      }
     });
   };
 
   return (
+    <>
     <Map
       ref={mapRef}
       height="100%"
@@ -75,8 +95,8 @@ export const VectorMap = (props) => {
         >
           {popupInfo.description.map(
             (entry) => (
-              // Each structured description is a JSON object
-              //   with a description and an optional array of time-domain descriptions
+              // For truck restrictions each structured description is a JSON object
+              // with a description and an optional array of time-domain descriptions
               <p>
                 <b>{entry.description}</b>
                 {entry.time_domain_descriptions?.map(
@@ -89,7 +109,9 @@ export const VectorMap = (props) => {
           )}
         </Popup>
       )}
-      <NavigationControl position="bottom-right" />
+      <NavigationControl position="bottom-right" /> 
     </Map>
+    <OverlayControl onChange={updateOverlays}/>
+  </>
   );
 }
