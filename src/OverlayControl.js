@@ -4,7 +4,8 @@ import React, { useEffect, useState } from 'react'
 const OverlayControl = (props) => {
 
   const [trafficPatternsChecked, setTrafficPatternsChecked] = useState(false);
-  const [truckRestrictionsChecked, setTruckRestrictionsChecked] = useState(false)
+  const [truckRestrictionsChecked, setTruckRestrictionsChecked] = useState(false);
+  const [lowEmissionZonesChecked, setLowEmissionZonesChecked] = useState(false);
 
   useEffect(() => {
     const overlays = [];
@@ -14,8 +15,11 @@ const OverlayControl = (props) => {
     if (truckRestrictionsChecked) {
       overlays.push("truck-restrictions");
     }
+    if (lowEmissionZonesChecked) {
+      overlays.push("low-emission-zones");
+    }
     props.onChange(overlays);
-  },[trafficPatternsChecked, truckRestrictionsChecked]);
+  },[trafficPatternsChecked, truckRestrictionsChecked, lowEmissionZonesChecked]);
 
   return (
     <div className="control-panel overlay-control">
@@ -32,6 +36,13 @@ const OverlayControl = (props) => {
           onChange={() => setTruckRestrictionsChecked(!truckRestrictionsChecked)}
         />
         <label>Truck Restrictions</label>
+      </div>
+      <div>
+        <input type="checkbox" 
+          checked={lowEmissionZonesChecked}
+          onChange={() => setLowEmissionZonesChecked(!lowEmissionZonesChecked)}
+        />
+        <label>Low Emission Zones</label>
       </div>
     </div>
   )
