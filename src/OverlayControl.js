@@ -6,6 +6,8 @@ const OverlayControl = (props) => {
   const [trafficPatternsChecked, setTrafficPatternsChecked] = useState(false);
   const [truckRestrictionsChecked, setTruckRestrictionsChecked] = useState(false);
   const [lowEmissionZonesChecked, setLowEmissionZonesChecked] = useState(false);
+  const [tollRoadsChecked, setTollRoadsChecked] = useState(false);
+
 
   useEffect(() => {
     const overlays = [];
@@ -18,8 +20,11 @@ const OverlayControl = (props) => {
     if (lowEmissionZonesChecked) {
       overlays.push("low-emission-zones");
     }
+    if(tollRoadsChecked) {
+      overlays.push("toll");
+    }
     props.onChange(overlays);
-  },[trafficPatternsChecked, truckRestrictionsChecked, lowEmissionZonesChecked]);
+  },[trafficPatternsChecked, truckRestrictionsChecked, lowEmissionZonesChecked, tollRoadsChecked]);
 
   return (
     <div className="control-panel overlay-control">
@@ -43,6 +48,13 @@ const OverlayControl = (props) => {
           onChange={() => setLowEmissionZonesChecked(!lowEmissionZonesChecked)}
         />
         <label>Low Emission Zones</label>
+      </div>
+      <div>
+        <input type="checkbox" 
+          checked={tollRoadsChecked}
+          onChange={() => setTollRoadsChecked(!tollRoadsChecked)}
+        />
+        <label>Toll Roads</label>
       </div>
     </div>
   )
